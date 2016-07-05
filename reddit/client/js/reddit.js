@@ -1,3 +1,8 @@
+var React = require('react');
+var ReactDOM = require('react-dom');
+var $ = require('jquery');
+var moment = require('moment');
+
 var PostContent = React.createClass({
     render: function() {
         var fromNow = moment(this.props.date).fromNow();
