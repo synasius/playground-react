@@ -1,0 +1,21 @@
+{
+  "name": "reddit-react",
+  "version": "1.0.0",
+  "description": "Reddit in React ===============",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Federico Frenguelli",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "babel-core": "^6.10.4",
+    "babel-loader": "^6.2.4",
+    "babel-preset-react": "^6.11.1",
+    "react": "^15.2.0",
+    "react-dom": "^15.2.0"
+  }
+}
