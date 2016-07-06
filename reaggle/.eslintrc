@@ -1,0 +1,15 @@
+{
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "env": {
+        "node": true,
+        "browser": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+        "indent": ["warn", 4]
+    }
+}

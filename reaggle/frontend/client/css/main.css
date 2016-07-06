@@ -1,0 +1,22 @@
+.post-image {
+    width: 100px;
+    display: inline-block;
+}
+
+.post-image img {
+    width: 100%;
+    height: auto;
+}
+
+.post-element {
+    display: inline-block;
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.post-main {
+    border: 1px solid black;
+    margin-bottom: 8px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
