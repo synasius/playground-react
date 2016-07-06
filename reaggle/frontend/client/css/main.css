@@ -1,22 +1,13 @@
-.post-image {
-    width: 100px;
-    display: inline-block;
+html, button, input, select, textarea,
+.pure-g [class *= "pure-u"] {
+    /* Set your content font stack here: */
+    font-family: 'Raleway', sans-serif;
 }
 
-.post-image img {
-    width: 100%;
-    height: auto;
+.button-success {
+    background: rgb(28, 184, 65); /* this is a green */
 }
 
-.post-element {
-    display: inline-block;
-    margin-left: 8px;
-    margin-right: 8px;
-}
-
-.post-main {
-    border: 1px solid black;
-    margin-bottom: 8px;
-    padding-top: 4px;
-    padding-bottom: 4px;
+.button-error {
+    background: rgb(202, 60, 60); /* this is a maroon */
 }

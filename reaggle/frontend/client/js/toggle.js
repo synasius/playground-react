@@ -2,188 +2,140 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var $ = require('jquery');
 var moment = require('moment');
-require("moment-duration-format");
-
-var PostContent = React.createClass({
-    render: function() {
-        var fromNow = moment(this.props.date).fromNow();
-        var nsfw = this.props.nsfw ? "NSFW" : "";
-
-        // render the image only when src is not empty
-        var image = this.props.image ? <img src={this.props.image} /> : null;
-
-        return (
-            <div className="post-element post-content">
-                <div className="post-image">
-                    {image}
-                </div>
-                <div className="post-element post-detail">
-                    <h1 className="post-element post-title">
-                        <a href={this.props.url}>{this.props.title}</a>
-                    </h1>
-                    <p className="post-element post-tag">{nsfw}</p>
-                    <p>submitted {fromNow}</p>
-                </div>
-            </div>
-        );
-    }
-});
-
-var PostVotes = React.createClass({
-    getInitialState: function() {
-        return { vote: "novote" };
-    },
-
-    handleVoteUp: function() {
-        if (this.state.vote === "downvote") {
-            // if the post was downvoted we should update both votes and downvotes
-            this.setState({ vote: "upvote" });
-            // here we tell the parent to add an upvote and remove a downvote
-            this.props.onVoteUpdate(1, -1);
-        } else {
-            // otherwise we toggle the upvote state
-            if (this.state.vote === "upvote") {
-                this.setState({ vote: "novote" });
-                this.props.onVoteUpdate(-1, 0);
-            } else {
-                this.setState({ vote: "upvote" });
-                this.props.onVoteUpdate(1, 0);
-            }
-        }
-    },
-
-    handleVoteDown: function() {
-        if (this.state.vote === "upvote") {
-            // if the post was upvoted we should update both upvotes and downvotes
-            this.setState({ vote: "downvote" });
-            // here we tell the parent to add an upvote and remove a downvote
-            this.props.onVoteUpdate(-1, 1);
-        } else {
-            // otherwise we toggle the upvote state
-            if (this.state.vote === "downvote") {
-                this.setState({ vote: "novote" });
-                this.props.onVoteUpdate(0, -1);
-            } else {
-                this.setState({ vote: "downvote" });
-                this.props.onVoteUpdate(0, 1);
-            }
-        }
-    },
-
-    render: function() {
-        var points = this.props.upvotes - this.props.downvotes;
-
-        return (
-            <div className="post-element post-votes">
-                <input type="button" value="up" onClick={this.handleVoteUp} />
-                <h2>{points}</h2>
-                <input type="button" value="down" onClick={this.handleVoteDown} />
-            </div>
-        );
-    }
-});
 
 var ToggleEntry = React.createClass({
+    handleStart: function() {
+        // ask parent to start tracking
+        this.props.onStart({
+            description: this.props.entry.description,
+            project: this.props.entry.project,
+            billable: this.props.entry.billable,
+            start: Date.now(),
+        });
+    },
+
     render: function() {
         var from_date = moment(this.props.entry.from_date);
         var to_date = moment(this.props.entry.to_date);
-        var duration = moment.duration(to_date.diff(from_date)).format("h:mm:ss");
+        var d = moment.duration(to_date.diff(from_date));
+        var duration = Math.floor(d.asHours()) + moment.utc(d.asMilliseconds()).format(":mm:ss");
 
         if (this.props.entry.billable) {
-            var billable = <p>billable</p>
+            var billable = <p><strong>$</strong></p>
         }
 
         return (
-            <div className="entry-main">
-                <h2>{this.props.entry.project}</h2>
-                <p>{this.props.entry.description}</p>
-                <p>{duration}</p>
-                {billable}
+            <div className="pure-g">
+                <div className="pure-u-8-24">
+                    <h2>{this.props.entry.project}</h2>
+                </div>
+                <div className="pure-u-8-24">
+                    <p>{this.props.entry.description}</p>
+                </div>
+                <div className="pure-u-2-24">
+                    {billable}
+                </div>
+                <div className="pure-u-4-24">
+                    <p>{duration}</p>
+                </div>
+                <div className="pure-u-2-24">
+                    <button onClick={this.handleStart}>Start</button>
+                </div>
             </div>
         );
     }
 });
 
 var ToggleForm = React.createClass({
-    handleTitleChange: function(e) {
+    handleDescriptionChange: function(e) {
         var value = e.target.value;
-        this.setState({ title: value });
+        this.props.onDescriptionChanged(value);
     },
 
-    handleLinkChange: function(e) {
+    handleProjectChange: function(e) {
         var value = e.target.value;
-        this.setState({ url: value });
+        this.props.onProjectChanged(value);
     },
 
-    handleImageChange: function(e) {
-        var value = e.target.value;
-        this.setState({ image: value });
-    },
-
-    handleNsfwChange: function(e) {
+    handleBillableChange: function(e) {
         var value = e.target.checked;
-        this.setState({ nsfw: value });
+        this.props.onBillableChanged(value);
     },
 
-    handleSubmit: function(e) {
-        e.preventDefault();
-        if (!this.state.title) {
-            return;
+    handleTrack: function() {
+        if (this.props.start) {
+            this.props.onStop();
+        } else {
+            this.props.onStart();
         }
-
-        var data = {
-            title: this.state.title,
-            url: this.state.url,
-            image: this.state.image,
-            nsfw: this.state.nsfw,
-            upvotes: 0,
-            downvotes: 0
-        };
-
-        this.props.onPublishPost(data);
-
-        this.setState(this.getInitialState());
     },
 
     render: function() {
+        var buttonClass = "pure-button button-success";
+        var buttonLabel = "Start";
+        var duration = "0:00:00";
+
+        if (this.props.start) {
+            var buttonClass = "pure-button button-error";
+            var buttonLabel = "Stop";
+            var d = moment.duration(this.props.elapsed);
+            var duration = Math.floor(d.asHours()) + moment.utc(d.asMilliseconds()).format(":mm:ss");
+        }
+
         return (
-            <form className="post-form" onSubmit={this.handleSubmit} >
-                <input
-                    type="text"
-                    placeholder="insert title"
-                    value={this.state.title}
-                    onChange={this.handleTitleChange} />
-                <input
-                    type="url"
-                    placeholder="insert link"
-                    value={this.state.url}
-                    onChange={this.handleLinkChange} />
-                <input
-                    type="url"
-                    placeholder="insert image link"
-                    value={this.state.image}
-                    onChange={this.handleImageChange} />
-                <label>
+            <div className="pure-g">
+                <div className="pure-u-3-8">
                     <input
+                        className="pure-u-23-24"
+                        type="text"
+                        placeholder="insert project"
+                        value={this.props.project}
+                        onChange={this.handleProjectChange} />
+                </div>
+                <div className="pure-u-3-8">
+                    <input
+                        className="pure-u-23-24"
+                        type="text"
+                        placeholder="insert description"
+                        value={this.props.description}
+                        onChange={this.handleDescriptionChange} />
+                </div>
+                <div className="pure-u-1-8">
+                    <input
+                        className="pure-checkbox"
                         type="checkbox"
-                        checked={this.state.nsfw}
-                        onChange={this.handleNsfwChange} />
-                    NSFW
-                </label>
-                <input type="submit" value="Publish" />
-            </form>
+                        checked={this.props.billable}
+                        onChange={this.handleBillableChange} />
+                </div>
+                <div className="pure-u-1-8">
+                    <div className="pure-u-1-2">
+                        <p>{duration}</p>
+                    </div>
+
+                    <div className="pure-u-1-2">
+                        <button className={buttonClass} onClick={this.handleTrack}>{buttonLabel}</button>
+                    </div>
+                </div>
+            </div>
         );
     }
 });
 
 var Toggle = React.createClass({
     getInitialState: function() {
-        return { data: [] };
+        return {
+            data: [],
+
+            description: "",
+            project: "",
+            billable: false,
+            start: null,
+            elapsed: 0,
+        };
     },
 
     componentDidMount: function() {
         this.fetchEntries();
-        setInterval(this.fetchEntries, this.props.interval);
     },
 
     fetchEntries: function() {
@@ -198,11 +150,12 @@ var Toggle = React.createClass({
         });
     },
 
-    onSaveEntry: function(entry) {
+    saveEntry: function(entry) {
         var oldEntries = this.state.data;
         entry.id = Date.now();
 
-        var newEntries = oldEntries.concat([entry]);
+        var newEntries = oldEntries.slice(0);
+        newEntries.unshift(entry);
         this.setState({ data: newEntries });
 
         $.ajax({
@@ -215,18 +168,79 @@ var Toggle = React.createClass({
         });
     },
 
+    onStartFromEntry: function(entry) {
+        this.setState({
+            description: entry.description,
+            project: entry.project,
+            billable: entry.billable,
+            start: Date.now(),
+            elapsed: 0
+        });
+        this.timer = setInterval(this.tick, 1000);
+    },
+
+    onStart: function() {
+        this.setState({ start: Date.now(), elapsed: 0 });
+        this.timer = setInterval(this.tick, 1000);
+    },
+
+    onStop: function() {
+        // save before state is cleaned
+        var entry = {
+            description: this.state.description,
+            project: this.state.project,
+            billable: this.state.billable,
+            from_date: moment(this.state.start).format(),
+            to_date: moment(Date.now()).format(),
+        };
+        this.saveEntry(entry);
+
+        // clean the state
+        this.setState({ description: "", project: "", billable: false, start: null, elapsed: 0 });
+        clearInterval(this.timer);
+    },
+
+    tick: function() {
+        this.setState({ elapsed: Date.now() - this.state.start });
+    },
+
+    onDescriptionChanged: function(value) {
+        this.setState({ description: value });
+    },
+
+    onProjectChanged: function(value) {
+        this.setState({ project: value });
+    },
+
+    onBillableChanged: function(value) {
+        this.setState({ billable: value });
+    },
+
     render: function() {
         var entries = this.state.data.map(function(entry) {
             return (
                 <ToggleEntry
                     key={entry.id}
-                    entry={entry} />
+                    entry={entry}
+                    onStart={this.onStartFromEntry} />
             );
         }.bind(this));
 
-                //<ToggleForm onSaveEntry={this.onSaveEntry} />
         return (
             <div className="entries-list">
+                <ToggleForm
+                    description={this.state.description}
+                    project={this.state.project}
+                    billable={this.state.billable}
+                    start={this.state.start}
+                    elapsed={this.state.elapsed}
+
+                    onDescriptionChanged={this.onDescriptionChanged}
+                    onProjectChanged={this.onProjectChanged}
+                    onBillableChanged={this.onBillableChanged}
+
+                    onStop={this.onStop}
+                    onStart={this.onStart} />
                 {entries}
             </div>
         );

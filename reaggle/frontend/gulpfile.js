@@ -7,14 +7,13 @@ gulp.task('html', function() {
     return gulp.src('./client/*.html')
         .pipe(gulp.dest('./build'));
 });
-
 gulp.task('css', function() {
     return gulp.src('./client/css/*.css')
         .pipe(gulp.dest('./build/css'));
 });
 
 gulp.task('lint', function() {
-    return gulp.src('./client/js/*.js')
+    return gulp.src('')
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failAfterError());
@@ -22,20 +21,7 @@ gulp.task('lint', function() {
 
 gulp.task('webpack', function() {
     return gulp.src('./client/js/*.js')
-        .pipe(webpack({
-            module: {
-                loaders: [
-                    {
-                        test: /\.js?/,
-                        exclude: /node_modules/,
-                        loader: 'babel'
-                    }
-                ]
-            },
-            output: {
-                filename: "bundle.js"
-            }
-        }))
+        .pipe(webpack( require('./webpack.config.js') ))
         .pipe(gulp.dest('./build/js'));
 });
 
