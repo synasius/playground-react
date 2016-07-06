@@ -121,6 +121,29 @@ var ToggleForm = React.createClass({
     }
 });
 
+var ToggleList = React.createClass({
+    render: function() {
+        var entries = this.props.items.map(function(entry) {
+            return (
+                <ToggleEntry
+                    key={entry.id}
+                    entry={entry}
+                    onStart={this.props.onStartFromEntry} />
+            );
+        }.bind(this));
+        return (
+            <div className="toggle-list">
+                {entries}
+            </div>
+        );
+    },
+    shouldComponentUpdate: function(nextProps, nextState) {
+        // reasonable because properties /states are immutable;
+        // you may decide to enforce the behavior using immutable.js
+        return this.props.items !== nextProps.items;
+    }
+});
+
 var Toggle = React.createClass({
     getInitialState: function() {
         return {
@@ -217,15 +240,6 @@ var Toggle = React.createClass({
     },
 
     render: function() {
-        var entries = this.state.data.map(function(entry) {
-            return (
-                <ToggleEntry
-                    key={entry.id}
-                    entry={entry}
-                    onStart={this.onStartFromEntry} />
-            );
-        }.bind(this));
-
         return (
             <div className="entries-list">
                 <ToggleForm
@@ -241,7 +255,8 @@ var Toggle = React.createClass({
 
                     onStop={this.onStop}
                     onStart={this.onStart} />
-                {entries}
+
+                <ToggleList items={this.state.data} onStartFromEntry={this.onStartFromEntry} />
             </div>
         );
     }
