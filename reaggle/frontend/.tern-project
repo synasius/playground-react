@@ -1,7 +1,6 @@
 {
     "libs": [
         "browser",
-        "jquery"
     ],
     "loadEagerly": [
         "client/js/card.js"
