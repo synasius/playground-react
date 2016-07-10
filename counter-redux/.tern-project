@@ -1,0 +1,14 @@
+{
+    "libs": [
+        "browser",
+    ],
+    "loadEagerly": [
+        "client/js/card.js"
+    ],
+    "plugins": {
+        "requirejs": {
+            "baseURL": "./",
+            "paths": {}
+        }
+    }
+}
